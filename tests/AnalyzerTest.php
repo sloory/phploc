@@ -55,6 +55,9 @@
  */
 class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @var SebastianBergmann\PHPLOC\Analyser
+     */
     protected $analyser;
 
     protected function setUp()
@@ -67,7 +70,7 @@ class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
         $expected =
           array(
             'files' => 1,
-            'loc' => 62,
+            'loc' => 65,
             'cloc' => 3,
             'ccn' => 2,
             'ccnMethods' => 2,
@@ -76,7 +79,7 @@ class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
             'abstractClasses' => 1,
             'concreteClasses' => 1,
             'anonymousFunctions' => 1,
-            'functions' => 1,
+            'functions' => 2,
             'methods' => 4,
             'publicMethods' => 2,
             'nonPublicMethods' => 2,
@@ -97,12 +100,19 @@ class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
             'attributeAccesses' => 6,
             'staticAttributeAccesses' => 4,
             'instanceAttributeAccesses' => 2,
-            'lloc' => 19,
-            'llocClasses' => 17,
-            'namedFunctions' => 0,
+            'lloc' => 21,
+            'llocClasses' => 18,
+            'namedFunctions' => 1,
             'ccnByLloc' => 0.10,
-            'llocByNoc' => 8.5,
-            'llocByNom' => 4.25
+            'llocByNoc' => 9,
+            'llocByNom' => 4.5,
+            'llocFunctions' => 1,
+            'llocGlobal' => 2,
+            'llocByNof' => 0.5,
+            'globalAccesses' => 4,
+            'globalVariableAccesses' => 2,
+            'superGlobalVariableAccesses' => 1,
+            'globalConstantAccesses' => 1
         );
 
         $this->assertEquals(
@@ -120,7 +130,7 @@ class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
         $expected =
           array(
             'files' => 2,
-            'loc' => 85,
+            'loc' => 88,
             'cloc' => 7,
             'ccn' => 2,
             'ccnMethods' => 2,
@@ -129,7 +139,7 @@ class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
             'abstractClasses' => 1,
             'concreteClasses' => 1,
             'anonymousFunctions' => 1,
-            'functions' => 1,
+            'functions' => 2,
             'methods' => 4,
             'publicMethods' => 2,
             'nonPublicMethods' => 2,
@@ -150,12 +160,19 @@ class PHPLOC_AnalyserTest extends PHPUnit_Framework_TestCase
             'attributeAccesses' => 6,
             'staticAttributeAccesses' => 4,
             'instanceAttributeAccesses' => 2,
-            'lloc' => 19,
-            'llocClasses' => 17,
-            'namedFunctions' => 0,
+            'lloc' => 21,
+            'llocClasses' => 18,
+            'namedFunctions' => 1,
             'ccnByLloc' => 0.10,
-            'llocByNoc' => 8.5,
-            'llocByNom' => 4.25
+            'llocByNoc' => 9,
+            'llocByNom' => 4.5,
+            'llocFunctions' => 1,
+            'llocGlobal' => 2,
+            'llocByNof' => 0.5,
+            'globalAccesses' => 4,
+            'globalVariableAccesses' => 2,
+            'superGlobalVariableAccesses' => 1,
+            'globalConstantAccesses' => 1
         );
 
         $this->assertEquals(

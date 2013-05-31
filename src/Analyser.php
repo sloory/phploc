@@ -43,9 +43,11 @@
 
 namespace SebastianBergmann\PHPLOC
 {
+    // @codeCoverageIgnoreStart
     if (!defined('T_TRAIT')) {
         define('T_TRAIT', 1000);
     }
+    // @codeCoverageIgnoreEnd
 
     /**
      * PHPLOC code analyser.
@@ -61,66 +63,99 @@ namespace SebastianBergmann\PHPLOC
         /**
          * @var array
          */
-        protected $namespaces = array();
+        private $namespaces = array();
 
         /**
          * @var array
          */
-        protected $classes = array();
+        private $classes = array();
 
         /**
          * @var array
          */
-        protected $count = array(
-          'files'                     => 0,
-          'loc'                       => 0,
-          'lloc'                      => 0,
-          'llocClasses'               => 0,
-          'llocFunctions'             => 0,
-          'llocGlobal'                => 0,
-          'cloc'                      => 0,
-          'ccn'                       => 0,
-          'ccnMethods'                => 0,
-          'interfaces'                => 0,
-          'traits'                    => 0,
-          'classes'                   => 0,
-          'abstractClasses'           => 0,
-          'concreteClasses'           => 0,
-          'functions'                 => 0,
-          'namedFunctions'            => 0,
-          'anonymousFunctions'        => 0,
-          'methods'                   => 0,
-          'publicMethods'             => 0,
-          'nonPublicMethods'          => 0,
-          'nonStaticMethods'          => 0,
-          'staticMethods'             => 0,
-          'constants'                 => 0,
-          'classConstants'            => 0,
-          'globalConstants'           => 0,
-          'testClasses'               => 0,
-          'testMethods'               => 0,
-          'ccnByLloc'                 => 0,
-          'ccnByNom'                  => 0,
-          'llocByNoc'                 => 0,
-          'llocByNom'                 => 0,
-          'llocByNof'                 => 0,
-          'methodCalls'               => 0,
-          'staticMethodCalls'         => 0,
-          'instanceMethodCalls'       => 0,
-          'attributeAccesses'         => 0,
-          'staticAttributeAccesses'   => 0,
-          'instanceAttributeAccesses' => 0
+        private $constants = array();
+
+        /**
+         * @var array
+         */
+        private $possibleConstantAccesses = array();
+
+        /**
+         * @var array
+         */
+        private $count = array(
+          'files'                       => 0,
+          'loc'                         => 0,
+          'lloc'                        => 0,
+          'llocClasses'                 => 0,
+          'llocFunctions'               => 0,
+          'llocGlobal'                  => 0,
+          'cloc'                        => 0,
+          'ccn'                         => 0,
+          'ccnMethods'                  => 0,
+          'interfaces'                  => 0,
+          'traits'                      => 0,
+          'classes'                     => 0,
+          'abstractClasses'             => 0,
+          'concreteClasses'             => 0,
+          'functions'                   => 0,
+          'namedFunctions'              => 0,
+          'anonymousFunctions'          => 0,
+          'methods'                     => 0,
+          'publicMethods'               => 0,
+          'nonPublicMethods'            => 0,
+          'nonStaticMethods'            => 0,
+          'staticMethods'               => 0,
+          'constants'                   => 0,
+          'classConstants'              => 0,
+          'globalConstants'             => 0,
+          'testClasses'                 => 0,
+          'testMethods'                 => 0,
+          'ccnByLloc'                   => 0,
+          'ccnByNom'                    => 0,
+          'llocByNoc'                   => 0,
+          'llocByNom'                   => 0,
+          'llocByNof'                   => 0,
+          'methodCalls'                 => 0,
+          'staticMethodCalls'           => 0,
+          'instanceMethodCalls'         => 0,
+          'attributeAccesses'           => 0,
+          'staticAttributeAccesses'     => 0,
+          'instanceAttributeAccesses'   => 0,
+          'globalAccesses'              => 0,
+          'globalVariableAccesses'      => 0,
+          'superGlobalVariableAccesses' => 0,
+          'globalConstantAccesses'      => 0,
         );
 
         /**
-         * @var ezcConsoleOutput
+         * @var \ezcConsoleOutput
          */
-        protected $output;
+        private $output;
+
+        /**
+         * @var array
+         */
+        private $superGlobals = array(
+          '$_ENV' => TRUE,
+          '$_POST' => TRUE,
+          '$_GET' => TRUE,
+          '$_COOKIE' => TRUE,
+          '$_SERVER' => TRUE,
+          '$_FILES' => TRUE,
+          '$_REQUEST' => TRUE,
+          '$HTTP_ENV_VARS' => TRUE,
+          '$HTTP_POST_VARS' => TRUE,
+          '$HTTP_GET_VARS' => TRUE,
+          '$HTTP_COOKIE_VARS' => TRUE,
+          '$HTTP_SERVER_VARS' => TRUE,
+          '$HTTP_POST_FILES' => TRUE
+        );
 
         /**
          * Constructor.
          *
-         * @param ezcConsoleOutput $output
+         * @param \ezcConsoleOutput $output
          * @since Method available since Release 1.5.0
          */
         public function __construct(\ezcConsoleOutput $output = NULL)
@@ -147,7 +182,7 @@ namespace SebastianBergmann\PHPLOC
                 foreach ($files as $file) {
                     $this->preProcessFile($file);
 
-                    if ($this->output !== NULL) {
+                    if (isset($bar)) {
                         $bar->advance();
                     }
                 }
@@ -173,7 +208,7 @@ namespace SebastianBergmann\PHPLOC
 
                 $this->countFile($file, $countTests);
 
-                if ($this->output !== NULL) {
+                if (isset($bar)) {
                     $bar->advance();
                 }
             }
@@ -203,6 +238,16 @@ namespace SebastianBergmann\PHPLOC
             $count['llocGlobal']        = $count['lloc'] -
                                           $count['llocClasses'] -
                                           $count['llocFunctions'];
+
+            foreach ($this->possibleConstantAccesses as $possibleConstantAccess) {
+                if (in_array($possibleConstantAccess, $this->constants)) {
+                    $count['globalConstantAccesses']++;
+                }
+            }
+
+            $count['globalAccesses'] = $count['globalConstantAccesses'] +
+                                       $count['globalVariableAccesses'] +
+                                       $count['superGlobalVariableAccesses'];
 
             if ($count['lloc'] > 0) {
                 $count['ccnByLloc'] = $count['ccn'] / $count['lloc'];
@@ -253,9 +298,7 @@ namespace SebastianBergmann\PHPLOC
                     continue;
                 }
 
-                list ($token, $value) = $tokens[$i];
-
-                switch ($token) {
+                switch ($tokens[$i][0]) {
                     case T_NAMESPACE: {
                         $namespace = $this->getNamespaceName($tokens, $i);
                     }
@@ -534,6 +577,25 @@ namespace SebastianBergmann\PHPLOC
                     case T_STRING: {
                         if ($value == 'define') {
                             $this->count['globalConstants']++;
+
+                            $j = $i + 1;
+
+                            while (isset($tokens[$j]) && $tokens[$j] != ';') {
+                                if (is_array($tokens[$j]) &&
+                                    $tokens[$j][0] == T_CONSTANT_ENCAPSED_STRING) {
+                                    $this->constants[] = str_replace(
+                                      '\'', '', $tokens[$j][1]
+                                    );
+
+                                    break;
+                                }
+
+                                $j++;
+                            }
+                        }
+
+                        else {
+                            $this->possibleConstantAccesses[] = $value;
                         }
                     }
                     break;
@@ -546,11 +608,6 @@ namespace SebastianBergmann\PHPLOC
                         while (isset($tokens[$j]) && $tokens[$j] != ';') {
                             if (is_string($tokens[$j]) && $tokens[$j] == '(') {
                                 $call = TRUE;
-                            }
-
-                            else if (is_array($tokens[$j]) &&
-                                     $tokens[$j][0] == T_VARIABLE) {
-                                $access = TRUE;
                             }
 
                             $j++;
@@ -571,29 +628,24 @@ namespace SebastianBergmann\PHPLOC
                         }
                     }
                     break;
+
+                    case T_GLOBAL: {
+                        $this->count['globalVariableAccesses']++;
+                    }
+                    break;
+
+                    case T_VARIABLE: {
+                        if ($value == '$GLOBALS') {
+                            $this->count['globalVariableAccesses']++;
+                        }
+
+                        else if (isset($this->superGlobals[$value])) {
+                            $this->count['superGlobalVariableAccesses']++;
+                        }
+                    }
+                    break;
                 }
             }
-        }
-
-        protected function isTestMethod($functionName, $visibility, $static, array $tokens, $currentToken) {
-            if ($static || $visibility != T_PUBLIC) {
-                return FALSE;
-            }
-
-            if (strpos($functionName, 'test') === 0) {
-                return TRUE;
-            }
-
-            while ($tokens[$currentToken][0] != T_DOC_COMMENT) {
-                if ($tokens[$currentToken] == '{' || $tokens[$currentToken] == '}') {
-                    return FALSE;
-                }
-
-                --$currentToken;
-            }
-
-            return strpos($tokens[$currentToken][1], '@test') !== FALSE ||
-                   strpos($tokens[$currentToken][1], '@scenario') !== FALSE;
         }
 
         /**
@@ -602,7 +654,7 @@ namespace SebastianBergmann\PHPLOC
          * @return string
          * @since  Method available since Release 1.3.0
          */
-        protected function getNamespaceName(array $tokens, $i)
+        private function getNamespaceName(array $tokens, $i)
         {
             if (isset($tokens[$i+2][1])) {
                 $namespace = $tokens[$i+2][1];
@@ -628,7 +680,7 @@ namespace SebastianBergmann\PHPLOC
          * @return string
          * @since  Method available since Release 1.3.0
          */
-        protected function getClassName($namespace, array $tokens, $i)
+        private function getClassName($namespace, array $tokens, $i)
         {
             $i         += 2;
             $namespaced = FALSE;
@@ -659,7 +711,7 @@ namespace SebastianBergmann\PHPLOC
          * @return boolean
          * @since  Method available since Release 1.2.0
          */
-        protected function isTestClass($className)
+        private function isTestClass($className)
         {
             $parent = $this->classes[$className];
             $result = FALSE;
@@ -692,6 +744,36 @@ namespace SebastianBergmann\PHPLOC
             }
 
             return $result;
+        }
+
+        /**
+         * @param  string  $functionName
+         * @param  integer $visibility
+         * @param  boolean $static
+         * @param  array   $tokens
+         * @param  integer $currentToken
+         * @return boolean
+         * @since  Method available since Release 2.0.0
+         */
+        private function isTestMethod($functionName, $visibility, $static, array $tokens, $currentToken) {
+            if ($static || $visibility != T_PUBLIC) {
+                return FALSE;
+            }
+
+            if (strpos($functionName, 'test') === 0) {
+                return TRUE;
+            }
+
+            while ($tokens[$currentToken][0] != T_DOC_COMMENT) {
+                if ($tokens[$currentToken] == '{' || $tokens[$currentToken] == '}') {
+                    return FALSE;
+                }
+
+                --$currentToken;
+            }
+
+            return strpos($tokens[$currentToken][1], '@test') !== FALSE ||
+                   strpos($tokens[$currentToken][1], '@scenario') !== FALSE;
         }
     }
 }

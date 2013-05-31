@@ -9,6 +9,7 @@ define('A_GLOBAL_CONSTANT', 'foo');
 
 function &a_global_function()
 {
+    $a = 'b';
 }
 
 interface AnInterface
@@ -25,8 +26,10 @@ class ACLass extends AnAbstractClass implements AnInterface
 
     public static function aStaticMethod()
     {
-        $a = 'a';
-        $b = "${a} {$a}";
+        global $foo;
+
+        $a = $_GET['a'];
+        $GLOBALS['bar'] = A_GLOBAL_CONSTANT;
 
         $o->m();
         $o->$m();
